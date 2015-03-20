@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0"/>
+
+    <title>MapStack - Ville Hackaton</title>
+
+    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+    <style type="text/css">
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+        path {
+            fill: #000;
+            fill-opacity: 0;
+            stroke: #fff;
+            stroke-width: 0;
+        }
+        path:hover {
+            fill-opacity: .1;
+        }
+    </style>
+    <!--[if lte IE 8]>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5/leaflet.ie.css" />
+    <![endif]-->
+
+    <script src="lib/leaflet/leaflet.js"></script>
+    <script src="js/countries.js"></script>
+
+    <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', 'UA-941940-28']);
+        _gaq.push(['_trackPageview']);
+
+        (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+    </script>
+</head>
+<body>
+
+<h1>MapStack - Ville Hackaton</h1>
+
+<div id="map"></div>
+
+<script src="lib/jquery/jquery-1.11.2.min.js"></script>
+
+<script type="text/javascript">
+    $('#map').height($( document ).height() - 100);
+
+    $( window ).resize(function() {
+        $('#map').height($( document ).height
+        () - 100);
+    });
+
+    //simple XHR request in pure JavaScript
+    function load(url, callback) {
+        var xhr;
+
+        if(typeof XMLHttpRequest !== 'undefined') xhr = new XMLHttpRequest();
+        else {
+            var versions = ["MSXML2.XmlHttp.5.0",
+                "MSXML2.XmlHttp.4.0",
+                "MSXML2.XmlHttp.3.0",
+                "MSXML2.XmlHttp.2.0",
+                "Microsoft.XmlHttp"]
+
+            for(var i = 0, len = versions.length; i < len; i++) {
+                try {
+                    xhr = new ActiveXObject(versions[i]);
+                    break;
+                }
+                catch(e){}
+            } // end for
+        }
+
+        xhr.onreadystatechange = ensureReadiness;
+
+        function ensureReadiness() {
+            if(xhr.readyState < 4) {
+                return;
+            }
+
+            if(xhr.status !== 200) {
+                return;
+            }
+
+            // all is well
+            if(xhr.readyState === 4) {
+                callback(xhr);
+            }
+        }
+
+        xhr.open('GET', url, true);
+        xhr.send('');
+    }
+    var map = new L.Map("map", {
+        center: [0, 0],
+        zoom: 3
+    })
+            .addLayer(new L.TileLayer("http://{s}.tile.cloudmade.com/1a1b06b230af4efdbb989ea99e9841af/998/256/{z}/{x}/{y}.png"));
+
+    //Load a gepJSON file with ajax into Leaflet
+    load('js/world-countries.JSON', function(xhr) {
+        var collection = JSON.parse(xhr.responseText);
+
+        var geojson = L.geoJson(collection, {
+            onEachFeature: onEachFeature
+        }).addTo(map);
+
+        function clickFeature(e) {
+            var features = e.target.feature,
+                    properties = features.properties,
+                    name = properties.name;
+            console.log(name);
+        }
+
+        function onEachFeature(feature, layer) {
+            layer.on({
+                click: clickFeature
+            });
+        }
+
+        map.on({
+            click: function() {
+                map.setView([0,0],2);
+            }
+        });
+
+    });
+
+
+
+</script>
+</body>
+</html>
